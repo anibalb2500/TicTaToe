@@ -32,6 +32,14 @@ io.on("connection", (socket) => {
     const player = users.length === 0 ? Player.X : Player.O;
     users.push({ id: socket.id, player });
 
+    if (users.length == 2) {
+        console.log("WE CAN START THE GAME");
+        // Randomly emit X or O to the clients
+        const randomIndex = Math.floor(Math.random() * 2);
+        const startingPlayer = randomIndex === 0 ? Player.X : Player.O;
+        io.emit("startGame", { player: startingPlayer });
+      }
+
     // Emit the initial state of the game to the client
     socket.emit("initialState", { 
         coordinates,
@@ -40,6 +48,7 @@ io.on("connection", (socket) => {
 
   socket.on("newMove", (message) => {
     const { player, x, y } = message;
+    console.log("New move received ${message}");
 
     if (player === Player.X || player === Player.O && Number.isInteger(x) && Number.isInteger(y)) {
         // Process the message
@@ -47,7 +56,7 @@ io.on("connection", (socket) => {
         // At coordinates[x][y] set the value to player - Maybe add a check to see if the coordinates are valid
         coordinates[x][y] = player;
         // Emit the updated coordinates to all clients - Maybe the DS update was successful
-        io.emit("successfullyAdded", successfullyAdded);
+        io.emit("successfullyAdded", message);
       } else {
         console.error("Invalid message type");
       }

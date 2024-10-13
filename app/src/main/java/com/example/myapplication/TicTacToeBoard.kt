@@ -13,11 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.models.Player
 
 @Composable
-fun TicTacToeBoard() {
-    var board by remember { mutableStateOf(List(3) { row -> List(3) { col -> Cell(row, col) } }) }
-    var currentPlayer by remember { mutableStateOf("X") }
+fun TicTacToeBoard(
+    coordinates: Coordinates,
+    onCoordinateTake: (Int, Int) -> Unit,
+    canPlay: Boolean
+) {
     var winner by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -25,28 +28,24 @@ fun TicTacToeBoard() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        board.forEach { row ->
+        coordinates.coordinates.forEachIndexed { xCoordinate, row ->
             Row {
-                row.forEach { cell ->
+                row.forEachIndexed { yCoordinate, tileOwner ->
                     Box(
                         modifier = Modifier
                             .size(100.dp)
                             .background(Color.White)
                             .border(2.dp, Color.Black)
                             .background(Color.LightGray)
-                            .clickable(enabled = cell.value.isEmpty() && winner == null) {
-//                                cell.value = currentPlayer
-//                                if (checkWin(board, currentPlayer)) {
-//                                    winner = currentPlayer
-//                                } else if (board.flatten().all { it.value.isNotEmpty() }) {
-//                                    winner = "Draw"
-//                                } else {
-//                                    currentPlayer = if (currentPlayer == "X") "O" else "X"
-//                                }
+                            .clickable(enabled = tileOwner == null && canPlay) {
+                                onCoordinateTake(xCoordinate, yCoordinate)
                             },
                         contentAlignment = Alignment.Center
                     ) {
-//                        Text(text = cell.value, fontSize = 24.sp)
+                        if (tileOwner != null) {
+                            val text = if (tileOwner == Player.X) "X" else "O"
+                            Text(text = text, fontSize = 24.sp)
+                        }
                     }
                 }
             }

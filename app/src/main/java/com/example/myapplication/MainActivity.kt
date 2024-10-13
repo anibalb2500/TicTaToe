@@ -23,6 +23,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.models.MoveData
+import com.example.myapplication.models.Player
+import com.example.myapplication.models.toOpponent
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import io.socket.client.IO
 import java.net.Socket
@@ -49,17 +52,60 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Screen(modifier: Modifier, socket: WebSocket) {
-    val messages = remember { mutableStateListOf<MessageData>() }
+    val currentPlayer = remember { mutableStateOf<Player?>(null) }
+    val coordinates = remember { mutableStateOf<Coordinates>(Coordinates()) }
+    var yourPlayer = remember { mutableStateOf<Player?>(null) }
+
     socket.connect()
-    socket.setNewMessageListener { message ->
-        messages.add(message)
+    socket.setInitialStateListener {
+        yourPlayer.value = it
+    }
+    socket.setNewMoveListener { moveData ->
+        coordinates.value.updateCoordinates(moveData)
+        currentPlayer.value = moveData.player.toOpponent()
+    }
+    socket.setStartGameListener {
+        currentPlayer.value = it
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        TicTacToeBoard()
+        if (currentPlayer.value != null) {
+            Text(text = "You Are: ${yourPlayer.value}")
+            Text(text = "Current Player: ${currentPlayer.value}")
+            TicTacToeBoard(
+                coordinates = coordinates.value,
+                onCoordinateTake = { x, y ->
+                    if (currentPlayer.value != null) {
+                        socket.sendMoveData(MoveData(
+                            player = currentPlayer.value!!,
+                            xCoordinate = x,
+                            yCoordinate = y
+                        ))
+                    }
+                },
+                canPlay = yourPlayer.value == currentPlayer.value && currentPlayer.value != null
+            )
+        } else {
+            Text(text = "Esperando otros jugadores")
+        }
     }
 }
 
 
 data class Cell(val row: Int, val col: Int, var value: String = "")
 
+
+
+class Coordinates {
+
+    val coordinates: Array<Array<Player?>> = arrayOf(
+        arrayOf(null, null, null),
+        arrayOf(null, null, null),
+        arrayOf(null, null, null)
+    )
+
+    fun updateCoordinates(moveData: MoveData) {
+        coordinates[moveData.xCoordinate][moveData.yCoordinate] = moveData.player
+
+    }
+}

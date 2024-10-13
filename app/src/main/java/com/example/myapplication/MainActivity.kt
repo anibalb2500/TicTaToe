@@ -56,42 +56,10 @@ fun Screen(modifier: Modifier, socket: WebSocket) {
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        MessageList(messages = messages, modifier = Modifier.weight(1f))
-        SendMessageField { socket.sendMessage(it) }
+        TicTacToeBoard()
     }
 }
 
-@Composable
-fun SendMessageField(onSendMessage: (String) -> Unit) {
-    var text by remember { mutableStateOf("") }
 
-    Row(
-        modifier = Modifier.padding(16.dp)
-    ) {
-        // TextField for user input
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            label = { Text("Enter text") },
-            modifier = Modifier.weight(1f)
-        )
+data class Cell(val row: Int, val col: Int, var value: String = "")
 
-        // Button placed next to the TextField
-        Button(
-            onClick = { onSendMessage(text) },
-            modifier = Modifier.padding(start = 8.dp)
-        ) {
-            Text("Submit")
-        }
-    }
-}
-
-// MessageList composable
-@Composable
-fun MessageList(messages: List<MessageData>, modifier: Modifier = Modifier) {
-    LazyColumn(modifier = modifier) {
-        items(messages) { message ->
-            Text(text = message.message, modifier = Modifier.padding(8.dp))
-        }
-    }
-}

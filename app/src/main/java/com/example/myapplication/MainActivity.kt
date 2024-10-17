@@ -18,9 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.myapplication.models.Coordinates
 import com.example.myapplication.models.MoveData
 import com.example.myapplication.models.Player
@@ -61,16 +63,33 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             )
         }
         composable(Destinations.LOBBY) {
-            LobbyScreen()
+            LobbyScreen(
+                onGameCreationSuccess = { player, roomId ->
+                    navController.navigate(Destinations.boardRoute(player, roomId))
+                },
+            )
         }
-        composable(Destinations.BOARD) {
-            BoardScreen(modifier = Modifier.fillMaxSize())
+        composable(
+            route = Destinations.BOARD,
+            arguments = listOf(
+                navArgument("player") { type = NavType.StringType },
+                navArgument("roomId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val player = Player.valueOf(backStackEntry.arguments?.getString("player") ?: "")
+            val roomId = backStackEntry.arguments?.getString("roomId") ?: ""
+            BoardScreen(modifier = Modifier.fillMaxSize(), player = player, roomId = roomId)
         }
+
     }
 }
 
 object Destinations {
     const val LOGIN = "login"
     const val LOBBY = "lobby"
-    const val BOARD = "board"
+    const val BOARD = "board/{player}/{roomId}"
+
+    fun boardRoute(player: String, roomId: String): String {
+        return "board/${player}/${roomId}"
+    }
 }

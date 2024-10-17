@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.myapplication.data.TicTacToeSession
+import com.example.myapplication.models.toPlayer
 import com.example.myapplication.states.LobbyState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import org.json.JSONObject
@@ -26,6 +27,7 @@ class LobbyViewModel @Inject constructor(
 
         // Socket Argument Names
         private const val USER_NAME = "username"
+        private const val PLAYER = "player"
         private const val ROOM_ID = "roomId"
         private const val MESSAGE = "message"
     }
@@ -54,8 +56,11 @@ class LobbyViewModel @Inject constructor(
             val json = it.validSocketArguments()
             if (json != null) {
                 val roomId = json.getString(ROOM_ID)
+                val player = json.getString(PLAYER).toPlayer()
                 Log.d("LobbyViewModel", "Game creation success - $roomId")
-                _lobbyState.postValue(LobbyState.GameCreationSuccess)
+                player?.let {
+                    _lobbyState.postValue(LobbyState.GameCreationSuccess(player, roomId))
+                }
             } else {
                 Log.d("LobbyViewModel", "Game creation failure - null args")
                 _lobbyState.postValue(LobbyState.GameCreationError)

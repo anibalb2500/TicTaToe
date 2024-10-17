@@ -15,10 +15,9 @@ import com.example.myapplication.models.Player
 import com.example.myapplication.models.toOpponent
 
 @Composable
-fun BoardScreen(modifier: Modifier) {
+fun BoardScreen(modifier: Modifier,  player: Player, roomId: String) {
     val currentPlayer = remember { mutableStateOf<Player?>(null) }
     val coordinates = remember { mutableStateOf<Coordinates>(Coordinates()) }
-    var yourPlayer = remember { mutableStateOf<Player?>(null) }
 
 //    socket.setNewMoveListener { moveData ->
 //        coordinates.value.updateCoordinates(moveData)
@@ -29,8 +28,9 @@ fun BoardScreen(modifier: Modifier) {
 //    }
 
     Column(modifier = modifier.fillMaxSize()) {
+        Text(text = "Room: $roomId")
         if (currentPlayer.value != null) {
-            Text(text = "You Are: ${yourPlayer.value}")
+            Text(text = "You Are: $player")
             Text(text = "Current Player: ${currentPlayer.value}")
             TicTacToeBoard(
                 coordinates = coordinates.value,
@@ -45,7 +45,7 @@ fun BoardScreen(modifier: Modifier) {
 //                        )
                     }
                 },
-                canPlay = yourPlayer.value == currentPlayer.value && currentPlayer.value != null
+                canPlay = player == currentPlayer.value && currentPlayer.value != null
             )
         } else {
             Text(text = "Waiting for other players")

@@ -1,7 +1,9 @@
 package com.example.myapplication.states
 
+import com.example.myapplication.models.Player
+
 sealed class LobbyState {
-    object GameCreationSuccess : LobbyState()
+    data class GameCreationSuccess(val player: Player, val roomId: String) : LobbyState()
     object GameCreationError : LobbyState()
     object GameCreationLoading : LobbyState()
 

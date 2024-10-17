@@ -26,6 +26,7 @@ import com.example.myapplication.models.MoveData
 import com.example.myapplication.models.Player
 import com.example.myapplication.models.toOpponent
 import com.example.myapplication.ui.screens.BoardScreen
+import com.example.myapplication.ui.screens.LobbyScreen
 import com.example.myapplication.ui.screens.LoginScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -56,8 +57,11 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable(Destinations.LOGIN) {
             LoginScreen(
                 modifier = Modifier.fillMaxSize(),
-                onLoginSuccess = { navController.navigate(Destinations.BOARD) }
+                onLoginSuccess = { navController.navigate(Destinations.LOBBY) }
             )
+        }
+        composable(Destinations.LOBBY) {
+            LobbyScreen()
         }
         composable(Destinations.BOARD) {
             BoardScreen(modifier = Modifier.fillMaxSize())
@@ -67,5 +71,6 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
 
 object Destinations {
     const val LOGIN = "login"
+    const val LOBBY = "lobby"
     const val BOARD = "board"
 }

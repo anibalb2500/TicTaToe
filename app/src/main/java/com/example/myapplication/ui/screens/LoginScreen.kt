@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +58,10 @@ fun LoginScreen(
 
         TextField(
             value = username,
-            onValueChange = { username = it },
+            onValueChange = {
+                if (loginState == LoginState.Error) loginViewModel.resetState()
+                username = it
+            },
             label = { Text("Username") }
         )
 
@@ -75,7 +80,9 @@ fun LoginScreen(
     }
 
     // Navigate to the next screen if login is successful
-    if (loginState is LoginState.Success) {
-        onLoginSuccess()
+    LaunchedEffect(loginState) {
+        if (loginState is LoginState.Success) {
+            onLoginSuccess()
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.example.myapplication
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.myapplication.data.TicTacToeSession
 import com.example.myapplication.states.LoginState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import org.json.JSONObject
@@ -10,7 +11,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val socket: WebSocketManager
+    private val socket: WebSocketManager,
+    private val session: TicTacToeSession
 ): ViewModel() {
 
     companion object {
@@ -39,8 +41,19 @@ class LoginViewModel @Inject constructor(
         _loginState.postValue(LoginState.Loading)
     }
 
+    fun resetState() {
+        _loginState.postValue(LoginState.Idle)
+    }
+
     private fun setListeners() {
-        socket.setListener(LOGIN_SUCCESS) { _loginState.postValue(LoginState.Success) }
+        socket.setListener(LOGIN_SUCCESS) { it ->
+            val json = it.validSocketArguments()
+            if (json != null) {
+                session.userName = json.getString(USER_NAME)
+            }
+
+            _loginState.postValue(LoginState.Success)
+        }
         socket.setListener(LOGIN_FAILED) { _loginState.postValue(LoginState.Error) }
     }
 }

@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.models.Coordinates
 import com.example.myapplication.models.Player
 
 @Composable
@@ -54,12 +55,4 @@ fun TicTacToeBoard(
             Text(text = "Winner: $it", fontSize = 24.sp, modifier = Modifier.padding(top = 16.dp))
         }
     }
-}
-
-fun checkWin(board: List<List<Cell>>, player: String): Boolean {
-    // Check rows, columns, and diagonals
-    return (board.any { row -> row.all { it.value == player } } ||
-            (0..2).any { col -> board.all { row -> row[col].value == player } } ||
-            (0..2).all { i -> board[i][i].value == player } ||
-            (0..2).all { i -> board[i][2 - i].value == player })
 }

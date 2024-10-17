@@ -8,8 +8,7 @@ import io.socket.client.Socket
 import org.json.JSONObject
 
 
-class WebSocket {
-    private var socket: Socket?  = null
+class WebSocketManager(private val socket: Socket?  = null) {
 
     companion object {
         private const val MESSAGE_FIELD = "message"
@@ -25,22 +24,22 @@ class WebSocket {
         private const val PLAYER_KEY = "player"
         private const val X_KEY = "x"
         private const val Y_KEY = "y"
-
-        // Misc
-        private const val LOCAL_HOST = "http://10.0.2.2:3000"
-        private const val LIVE = "https://chatserver-b2ardddcb6dsevbt.westus-01.azurewebsites.net/"
     }
 
     init {
-        try {
-            socket = IO.socket(LOCAL_HOST)
-        } catch (e: Exception) {
-            print(e.message)
+        socket?.connect()
+    }
+
+    fun sendMessage(eventName: String, data: JSONObject?) {
+        if (data != null) {
+            socket?.emit(eventName, data)
+        } else {
+            socket?.emit(eventName)
         }
     }
 
-    fun connect() {
-        socket?.connect()
+    fun setListener(event: String, callback: (data: Any) -> Unit) {
+        socket?.on(event) { args -> callback(args[0]) }
     }
 
     fun sendMoveData(moveData: MoveData) {
@@ -64,28 +63,6 @@ class WebSocket {
                     )
 
                     listener(moveData)
-                }
-            }
-        }
-//        socket?.on(NEW_MESSAGE_EVENT) { args ->
-//            if (args.isNotEmpty()) {
-//                val message = args[0] as JSONObject
-//
-//                val x = 0//message.getString(MESSAGE_FIELD), messageType
-//                val y = 0
-//                val player = Player.X // Somehting
-//                listener(MoveData(player, x, y))
-//            }
-//        }
-    }
-
-    fun setInitialStateListener(listener: (Player) -> Unit) {
-        socket?.on(INITIAL_STATE) { args ->
-            if (args.isNotEmpty()) {
-                val message = args[0] as JSONObject
-
-                message.getString(PLAYER_KEY).toPlayer()?.let {
-                    listener(it)
                 }
             }
         }

@@ -39,7 +39,7 @@ class WebSocketManager(private val socket: Socket?  = null) {
     }
 
     fun setListener(event: String, callback: (data: Any) -> Unit) {
-        socket?.on(event) { args -> callback(args[0]) }
+        socket?.on(event) { args -> callback(args) }
     }
 
     fun sendMoveData(moveData: MoveData) {

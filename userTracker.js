@@ -37,6 +37,15 @@ class UserTracker {
     getUsers() {
       return this.users;
     }
+
+        /**
+     * Get a user by ID.
+     * @param {string} username - The username of the user to get.
+     * @returns {User | undefined} The user with the matching ID, or undefined if not found.
+     */
+    getUserByName(username) {
+      return this.users.find(user => user.getUsername() === username);
+    }
   }
   
   export default UserTracker;

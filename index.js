@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import Lobby from "./lobby.js";
 import User from "./user.js";
 import UserTracker from "./userTracker.js";
+import Room from "./room.js";
 
 const io = new Server({ /* options */ });
 
@@ -11,9 +12,12 @@ const io = new Server({ /* options */ });
 const coordinates = Array(3).fill().map(() => [null, null, null]);
 
 // Track the users
-let users = new UserTracker();
+let userTracker = new UserTracker();
 let lobby = new Lobby();
 
+// This will limit us to how many rooms can be created. Look into improving room creation. 
+let rooms = [];
+let roomIdCounter = 0; 
 
 io.on("connection", (socket) => {
   console.log("New client connected");
@@ -22,6 +26,9 @@ io.on("connection", (socket) => {
     handleLogin(socket, message);
   })
 
+  socket.on("createNewGameRoom", (message) => {
+    createNewGameRoom(socket, message);
+  })
   
 });
 
@@ -32,7 +39,7 @@ io.listen(port);
 function handleLogin(socket, message) {
   const { username } = message;
 
-  const userExists = users.getUsers().some(user => user.getUsername() === username);
+  const userExists = userTracker.getUsers().some(user => user.getUsername() === username);
   if (userExists) {
     socket.emit("loginFailed");
     console.log(`User ${username} already exists`);
@@ -42,13 +49,47 @@ function handleLogin(socket, message) {
     const user = new User(socket.id, username, null);
 
     // Add the user to the users array
-    users.addUser(user);
+    userTracker.addUser(user);
 
     // Add user to the lobby
     lobby.addUser(user);
   }
 
   socket.emit("loginSuccess", { username });
+}
+
+function createNewGameRoom(socket, message) {
+  console.log("Creating new game room");
+  try {
+    const { username } = message;
+    userTracker.getUsers().forEach(element => {
+      console.log(element);
+    });
+    const user = userTracker.getUserByName(username);
+    console.log(user);
+  
+    const roomId = `room-${roomIdCounter++}`;
+    const room = new Room(roomId);
+    rooms.push(room);
+    room.addUser(user);
+    rooms[roomId] = room;
+    console.log('1');
+    const player = room.getPlayerByUser(user);
+
+    console.log('9 - ${player}')
+  
+    if (player === null) {
+      console.log('2');
+      socket.emit("gameRoomCreationFailure", { message: "Unexpected error" });
+    } else {
+      console.log('3');
+      socket.emit("gameRoomCreationSuccess", { roomId, player: player }); 
+    }
+  } catch (error) {
+    console.log('4');
+    console.log(error.message);
+    socket.emit("gameRoomCreationFailure", { message: error.message });
+  }
 }
 
 // io.on("connection", (socket) => {

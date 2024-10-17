@@ -4,15 +4,12 @@ class User {
      * Create a user.
      * @param {string} id - The user's socket ID.
      * @param {string} username - The user's username.
-     * @param {Player} [player] - The player's type (X or O).
      */
     constructor(id, username, player) {
       /** @type {string} */
       this.id = id;
       /** @type {string} */
       this.username = username;
-      /** @type {Player} */
-      this.player = player;
     }
   
     /**
@@ -29,14 +26,6 @@ class User {
      */
     getUsername() {
       return this.username;
-    }
-  
-    /**
-     * Get the player's type.
-     * @returns {Player} The player's type.
-     */
-    getPlayer() {
-      return this.player;
     }
   }
 

@@ -20,10 +20,14 @@ class LobbyViewModel @Inject constructor(
     companion object {
         // Socket Event Names - Requests
         private const val CREATE_ROOM = "createNewGameRoom"
+        private const val JOIN_ROOM = "joinGameRoom"
 
         // Socket Event Names - Responses
         private const val CREATION_SUCCESS = "gameRoomCreationSuccess"
         private const val CREATION_FAILED = "gameRoomCreationFailure"
+
+        private const val JOIN_SUCCESS = "joinRoomSuccess"
+        private const val JOIN_FAILURE = "joinRoomFailure"
 
         // Socket Argument Names
         private const val USER_NAME = "username"
@@ -49,7 +53,13 @@ class LobbyViewModel @Inject constructor(
         _lobbyState.postValue(LobbyState.GameCreationLoading)
     }
 
-    fun joinGame(roomNumber: String) { }
+    fun joinGame(roomNumber: String) {
+        val json = JSONObject()
+        json.put(USER_NAME, getUserName())
+        json.put(ROOM_ID, roomNumber)
+        socket.sendMessage(JOIN_ROOM, json)
+        _lobbyState.postValue(LobbyState.GameCreationLoading)
+    }
 
     private fun setListeners() {
         socket.setListener(CREATION_SUCCESS) {
@@ -74,6 +84,31 @@ class LobbyViewModel @Inject constructor(
             }
             Log.d("LobbyViewModel", "Game creation failure - $errorMessage")
             _lobbyState.postValue(LobbyState.GameCreationError)
+        }
+
+        socket.setListener(JOIN_SUCCESS) {
+            val json = it.validSocketArguments()
+            if (json != null) {
+                val roomId = json.getString(ROOM_ID)
+                val player = json.getString(PLAYER).toPlayer()
+                Log.d("LobbyViewModel", "Game creation success - $roomId")
+                player?.let {
+                    _lobbyState.postValue(LobbyState.GameJoinedSuccess(player, roomId))
+                }
+            } else {
+                Log.d("LobbyViewModel", "Game creation failure - null args")
+                _lobbyState.postValue(LobbyState.GameJoinedError)
+            }
+        }
+
+        socket.setListener(JOIN_FAILURE) {
+            var errorMessage = ""
+            val json = it.validSocketArguments()
+            if (json != null) {
+                errorMessage = json.getString(MESSAGE)
+            }
+            Log.d("LobbyViewModel", "Game creation failure - $errorMessage")
+            _lobbyState.postValue(LobbyState.GameJoinedError)
         }
     }
 }

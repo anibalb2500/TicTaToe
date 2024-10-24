@@ -96,5 +96,10 @@ fun LobbyScreen(
             val state = lobbyState as LobbyState.GameCreationSuccess
             onGameCreationSuccess(state.player.name, state.roomId)
         }
+
+        if (lobbyState is LobbyState.GameJoinedSuccess) {
+            val state = lobbyState as LobbyState.GameJoinedSuccess
+            onGameCreationSuccess(state.player.name, state.roomId)
+        }
     }
 }

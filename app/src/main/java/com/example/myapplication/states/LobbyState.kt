@@ -7,7 +7,7 @@ sealed class LobbyState {
     object GameCreationError : LobbyState()
     object GameCreationLoading : LobbyState()
 
-    object GameJoinedSuccess: LobbyState()
+    data class GameJoinedSuccess(val player: Player, val roomId: String): LobbyState()
     object GameJoinedError : LobbyState()
     object GameJoinedLoading : LobbyState()
 

@@ -29,6 +29,14 @@ io.on("connection", (socket) => {
   socket.on("createNewGameRoom", (message) => {
     createNewGameRoom(socket, message);
   })
+
+  socket.on("joinGameRoom", (message) => {
+    joinGameRoom(socket, message);
+  });
+
+  socket.on("getRoomData", (message) => {
+    getRoomData(socket, message);
+  });
   
 });
 
@@ -69,7 +77,8 @@ function createNewGameRoom(socket, message) {
     console.log(user);
   
     const roomId = `room-${roomIdCounter++}`;
-    const room = new Room(roomId);
+    const room = new Room();
+    room.roomId = roomId;
     rooms.push(room);
     room.addUser(user);
     rooms[roomId] = room;
@@ -82,7 +91,7 @@ function createNewGameRoom(socket, message) {
       console.log('2');
       socket.emit("gameRoomCreationFailure", { message: "Unexpected error" });
     } else {
-      console.log('3');
+      console.log('gameRoomCreationSuccess');
       socket.emit("gameRoomCreationSuccess", { roomId, player: player }); 
     }
   } catch (error) {
@@ -90,6 +99,70 @@ function createNewGameRoom(socket, message) {
     console.log(error.message);
     socket.emit("gameRoomCreationFailure", { message: error.message });
   }
+}
+
+
+function joinGameRoom(socket, message) {
+  console.log("Joining game room");
+  try {
+    const { username, roomId } = message;
+
+    // Find the user by username
+    const user = userTracker.getUserByName(username);
+    if (!user) {
+      console.log('user is null');
+      socket.emit("joinRoomFailure", { message: "User not found" });
+      return;
+    }
+
+    // Check if the room exists
+    const room = rooms[roomId];
+    console.log(rooms);
+    if (!room) {
+      console.log('room is null');
+      socket.emit("joinRoomFailure", { message: "Room not found" });
+      return;
+    }
+
+    // Add the user to the room
+    room.addUser(user); // Assuming player type will be assigned later
+
+    // Get the player type for the user
+    const player = room.getPlayerByUser(user);
+
+    if (player === null) {
+      console.log('player is null');
+      socket.emit("joinRoomFailure", { message: "Unexpected error" });
+    } else {
+      console.log(`User ${username} has joined room ${roomId}`);
+      socket.join(roomId);
+      io.emit("joinRoomSuccess", { roomId, player });
+    }
+  } catch (error) {
+    console.log(error.message);
+    socket.emit("joinRoomFailure", { message: error.message });
+  }
+}
+
+
+function getRoomData(socket, message) {
+  const { username, roomId } = message;
+  const user = userTracker.getUserByName(username);
+
+  // Find the room with the matching roomId
+  const room = rooms[roomId];
+  if (!room) {
+    socket.emit("getRoomStateFailure", { message: "Room not found" });
+    return;
+  }
+
+  // Emit the coordinates value of the room
+  socket.emit("getRoomStateSuccess", { 
+    coordinates: room.getCoordinates(), 
+    isFull: room.isFull(), 
+    yourPlayer: room.getPlayerByUser(user),
+    currentPlayer: room.getCurrentPlayer()
+  });
 }
 
 // io.on("connection", (socket) => {

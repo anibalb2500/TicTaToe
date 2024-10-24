@@ -1,9 +1,10 @@
 // Room.js
 class Room {
     constructor() {
-      this.roomId = 0;
+      this.roomId = null;
       this.playerO = null;
       this.playerX = null;
+      this.currentPlayer = null;
       this.users = [];
       this.coordinates = Array(3).fill().map(() => [null, null, null]);
     }
@@ -12,12 +13,21 @@ class Room {
       if (this.isFull()) {
         return;
       }
+      console.log(`addUser - ${this.playerX}, ${this.playerO}`);
 
       this.users.push({ user });
       if (this.playerX == null) {
+        console.log('Assigning playerO');
         this.playerX = user;
       } else if (this.playerO == null) {
+        console.log('Assigning playerO');
         this.playerO = user;
+      }
+
+      // Randomly select the first player and set currentPlayer
+      if (this.currentPlayer == null && this.playerX != null && this.playerO != null) {
+        console.log('Assigning currentPlayer');
+        this.currentPlayer = Math.random() < 0.5 ? this.playerX : this.playerO;
       }
     }
   
@@ -45,21 +55,12 @@ class Room {
       this.coordinates[x][y] = player;
     }
 
-    // First Player is always X
-    getPlayerX() {
-      if (this.isEmpty()) {
-        return null;
-      }
-      return this.users[0].id;
+    getCurrentPlayer() {
+      console.log('getCurrentPlayer - ', this.currentPlayer);
+      return this.getPlayerByUser(this.currentPlayer);
     }
 
-    // Second Player is always O
-    getPlayerX() {
-      if (this.users.length < 2) {
-        return null;
-      }
-      return this.users[1].id;
-    }
+
 
       /**
    * Get the player type by user.
@@ -67,20 +68,14 @@ class Room {
    * @returns {Player | null} The player type or null if not found.
    */
     getPlayerByUser(user) {
-      console.log(`getPlayerByUser - ${user}`);
-      console.log(`playerO - ${this.playerO}`);
-      console.log(`playerX - ${this.playerX}`);
+      try {
+        if (this.playerO && this.playerO.getId() === user.getId()) {
+          return 'O';
+        } else if (this.playerX && this.playerX.getId() === user.getId()) {
+          return 'X';
+        }
+      } catch (error) {}
 
-      console.log('5')
-      if (this.playerO != null && this.playerO == user) {
-        console.log('6')
-        return 'O';
-      } else if (this.playerX != null && this.playerX.id == user.id) {
-        console.log('7')
-        return 'X';
-      }
-
-      console.log('8')
       return null;
     }
   }

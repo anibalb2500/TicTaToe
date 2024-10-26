@@ -37,7 +37,10 @@ io.on("connection", (socket) => {
   socket.on("getRoomData", (message) => {
     getRoomData(socket, message);
   });
-  
+ 
+  socket.on("newMove", (message) => {
+    handleNewMove(socket, message);
+  });
 });
 
 const port = 3000;//process.env.PORT || 3000;
@@ -164,6 +167,51 @@ function getRoomData(socket, message) {
     currentPlayer: room.getCurrentPlayer()
   });
 }
+
+function handleNewMove(socket, message) {
+  const { roomId, player, x, y } = message;
+  
+  try {
+    console.log("player value", player)
+    var validPlayer = player == "X" || player == "O" 
+    console.log("Params", player, x, y)
+
+    if (validPlayer && Number.isInteger(x) && Number.isInteger(y)) {
+      console.log("failed check")
+    
+      const room = rooms[roomId];
+      if (!room) {
+        socket.emit("newMoveFailure", { message: "Room not found" });
+        return;
+      }
+  
+      // Process the message
+      console.log(`Received message: ${message}`);
+      // At coordinates[x][y] set the value to player - Maybe add a check to see if the coordinates are valid
+      const success = room.setCoordinate(x, y, player)
+      // if (!success) {
+      //   console.log("newMoveFailure - failed to set coordinates")
+      //   socket.emit("newMoveFailure", { message: "Failed to set coordinate" });
+      //   return;
+      // }
+      
+      room.updateCurrentPlayer();
+      
+      io.emit("newMoveSucces", {
+        roomId: roomId,
+        coordinates: room.getCoordinates(),
+        currentPlayer: room.getCurrentPlayer()
+      });
+    } else {
+        console.error("Invalid move");
+        socket.emit("newMoveFailure", { message: "Invalid move" });
+    }
+  } catch (error) {
+    console.log("handleNewMove error", error)
+    socket.emit("newMoveFailure", { message: "Error occured ${error}" });
+  }
+}
+
 
 // io.on("connection", (socket) => {
 

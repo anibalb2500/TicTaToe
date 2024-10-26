@@ -5,9 +5,10 @@ class Room {
       this.playerO = null;
       this.playerX = null;
       this.currentPlayer = null;
-      this.users = [];
-      this.coordinates = Array(3).fill().map(() => [null, null, null]);
+      this.users = [];    
     }
+
+    coordinates = Array(3).fill().map(() => [null, null, null]);
   
     addUser(user) {
       if (this.isFull()) {
@@ -52,12 +53,32 @@ class Room {
     }
   
     setCoordinate(x, y, player) {
-      this.coordinates[x][y] = player;
+      var copy = this.coordinates;
+      copy[x][y] = player;
+      // if (this.coordinates[x][y] == null) {
+      //   console.log()
+      //   return false;
+      // }
+
+      // this.coordinates[x][y] = player;
+      
+      // return true;
     }
 
     getCurrentPlayer() {
       console.log('getCurrentPlayer - ', this.currentPlayer);
       return this.getPlayerByUser(this.currentPlayer);
+    }
+
+    updateCurrentPlayer() {
+      if (this.currentPlayer != null) {
+        // Update to a switch
+        if (this.currentPlayer.getId() == this.playerX.getId()) {
+          this.currentPlayer = this.playerO
+        } else if (this.currentPlayer.getId() == this.playerO.getId()) {
+          this.currentPlayer = this.playerX
+        }
+      }
     }
 
 

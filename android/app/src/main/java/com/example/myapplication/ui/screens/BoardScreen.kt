@@ -34,18 +34,12 @@ fun BoardScreen(
         boardViewModel.enterRoom(roomId)
     }
 
-//    socket.setNewMoveListener { moveData ->
-//        coordinates.value.updateCoordinates(moveData)
-//        currentPlayer.value = moveData.player.toOpponent()
-//    }
-//    socket.setStartGameListener {
-//        currentPlayer.value = it
-//    }
-
     Column(modifier = modifier.fillMaxSize()) {
         Text(text = "Room: $roomId")
         if (boardState is BoardState.Playing && coordinates != null) {
-            Playing(player, boardState as BoardState.Playing, coordinates!!)
+            Playing(player, boardState as BoardState.Playing, coordinates!!) { x, y ->
+                boardViewModel.newMove(x, y)
+            }
         } else if (boardState is BoardState.WaitingForOtherPlayer) {
             Text(text = "Waiting for other players")
         } else {
@@ -58,23 +52,14 @@ fun BoardScreen(
 private fun Playing(
     player: Player,
     boardState: BoardState.Playing,
-    coordinates: Coordinates
+    coordinates: Coordinates,
+    onNewMove: (Int, Int) -> Unit
 ) {
     Text(text = "You Are: $player")
     Text(text = "Current Player: ${boardState.currentPlayer}")
     TicTacToeBoard(
         coordinates = coordinates,
-        onCoordinateTake = { x, y ->
-//                    if (currentPlayer.value != null) {
-//                        socket.sendMoveData(
-//                            MoveData(
-//                                player = currentPlayer.value!!,
-//                                xCoordinate = x,
-//                                yCoordinate = y
-//                            )
-//                        )
-//                    }
-        },
+        onCoordinateTake = { x, y -> onNewMove(x, y)},
         canPlay = player == boardState.currentPlayer
     )
 }

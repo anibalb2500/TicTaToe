@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -21,12 +22,15 @@ class BoardViewModel @Inject constructor(
 
     companion object {
         // Socket Event Names - Requests
-        private const val GET_ROOM_DATA = "getRoomData" // Add a separate event for this.
+        private const val GET_ROOM_DATA = "getRoomData"
+        private const val NEW_MOVE = "newMove"
 
         // Socket Event Names - Responses
         private const val GET_ROOM_STATE_SUCCESS = "getRoomStateSuccess"
         private const val GET_ROOM_STATE_FAILURE = "getRoomStateFailure"
         private const val JOIN_SUCCESS = "joinRoomSuccess"
+        private const val NEW_MOVE_FAILURE = "newMoveFailure"
+        private const val NEW_MOVE_SUCCESS = "newMoveSucces"
 
         // Socket Argument Names
         private const val ROOM_ID = "roomId"
@@ -35,6 +39,10 @@ class BoardViewModel @Inject constructor(
         private const val IS_FULL = "isFull"
         private const val YOUR_PLAYER = "yourPlayer"
         private const val CURRENT_PLAYER = "currentPlayer"
+        private const val PLAYER = "player"
+        private const val X_COORDINATE = "x"
+        private const val Y_COORDINATE = "y"
+        private const val MESSAGE = "message"
     }
 
     init {
@@ -53,6 +61,37 @@ class BoardViewModel @Inject constructor(
         this.currentRoomId = roomId
         getRoomData()
     }
+
+    fun newMove(xCoordinate: Int, yCoordinate: Int) {
+        if (_boardState.value is BoardState.Playing) {
+            val json = JSONObject()
+            json.put(ROOM_ID, currentRoomId)
+            json.put(PLAYER, (_boardState.value as BoardState.Playing).currentPlayer.name)
+            json.put(X_COORDINATE, xCoordinate)
+            json.put(Y_COORDINATE, yCoordinate)
+            socket.sendMessage(NEW_MOVE, json)
+        }
+    }
+
+    /**
+     *     fun setNewMoveListener(listener: (MoveData) -> Unit) {
+     *         socket?.on(SUCCESSFULLY_ADDED) { args ->
+     *             if (args.isNotEmpty()) {
+     *                 val message = args[0] as JSONObject
+     *                 val player = message.getString(PLAYER_KEY).toPlayer()
+     *                 if (player != null) {
+     *                     val moveData = MoveData(
+     *                         player = player,
+     *                         xCoordinate = message.getInt(X_KEY),
+     *                         yCoordinate = message.getInt(Y_KEY)
+     *                     )
+     *
+     *                     listener(moveData)
+     *                 }
+     *             }
+     *         }
+     *     }
+     */
 
     private fun setListeners() {
         socket.setListener(GET_ROOM_STATE_SUCCESS) {
@@ -85,6 +124,42 @@ class BoardViewModel @Inject constructor(
                 if (roomId == currentRoomId) {
                     getRoomData()
                 }
+            }
+        }
+
+        socket.setListener(NEW_MOVE_SUCCESS) {
+            it.validSocketArguments()?.let { json ->
+                val roomId = json.getString(ROOM_ID)
+                if (roomId != this.currentRoomId) {
+                    return@let
+                }
+
+                val coordinatesJson = json.getJSONArray(COORDINATES)
+                val coordinates = parseCoordinates(coordinatesJson)
+                // Check if coordinates are different before updating
+                _coordinates.postValue(coordinates)
+
+                val currentPlayer = json.getString(CURRENT_PLAYER).toPlayer()
+
+                if (currentPlayer == null) {
+                    // Handle error
+                } else {
+                    // Improve this. Can be one line somehow
+                    if (_boardState.value is BoardState.Playing) {
+                        val copy = (_boardState.value as BoardState.Playing)
+                            .copy(currentPlayer = currentPlayer)
+                        _boardState.postValue(copy)
+                    } else {
+                        // handle error
+                    }
+                }
+            }
+        }
+
+        socket.setListener(NEW_MOVE_FAILURE) {
+            it.validSocketArguments()?.let { json ->
+                val message = json.getString(MESSAGE)
+                Log.d("BoardViewModel", message)
             }
         }
     }

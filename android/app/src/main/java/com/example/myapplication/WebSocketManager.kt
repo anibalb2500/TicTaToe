@@ -10,21 +10,7 @@ import org.json.JSONObject
 
 class WebSocketManager(private val socket: Socket?  = null) {
 
-    companion object {
-        private const val MESSAGE_FIELD = "message"
-        private const val ID_FIELD = "id"
-
-        // Socket Events
-        private const val START_GAME = "startGame"
-        private const val INITIAL_STATE = "initialState"
-        private const val NEW_MOVE = "newMove"
-        private const val SUCCESSFULLY_ADDED = "successfullyAdded"
-
-        // Socket data
-        private const val PLAYER_KEY = "player"
-        private const val X_KEY = "x"
-        private const val Y_KEY = "y"
-    }
+    companion object {}
 
     init {
         socket?.connect()
@@ -41,23 +27,4 @@ class WebSocketManager(private val socket: Socket?  = null) {
     fun setListener(event: String, callback: (data: Any) -> Unit) {
         socket?.on(event) { args -> callback(args) }
     }
-
-    fun sendMoveData(moveData: MoveData) {
-        val json = JSONObject()
-        json.put(PLAYER_KEY, moveData.player)
-        json.put(X_KEY, moveData.xCoordinate)
-        json.put(Y_KEY, moveData.yCoordinate)
-        socket?.emit(NEW_MOVE, json)
-    }
-
-    fun setStartGameListener(listener: (Player) -> Unit) {
-        socket?.on(START_GAME) { args ->
-            if (args.isNotEmpty()) {
-                val message = args[0] as JSONObject
-
-                message.getString(PLAYER_KEY).toPlayer()?.let { listener(it) }
-            }
-        }
-    }
-
 }

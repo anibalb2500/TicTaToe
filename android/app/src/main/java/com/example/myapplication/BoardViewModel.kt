@@ -73,26 +73,6 @@ class BoardViewModel @Inject constructor(
         }
     }
 
-    /**
-     *     fun setNewMoveListener(listener: (MoveData) -> Unit) {
-     *         socket?.on(SUCCESSFULLY_ADDED) { args ->
-     *             if (args.isNotEmpty()) {
-     *                 val message = args[0] as JSONObject
-     *                 val player = message.getString(PLAYER_KEY).toPlayer()
-     *                 if (player != null) {
-     *                     val moveData = MoveData(
-     *                         player = player,
-     *                         xCoordinate = message.getInt(X_KEY),
-     *                         yCoordinate = message.getInt(Y_KEY)
-     *                     )
-     *
-     *                     listener(moveData)
-     *                 }
-     *             }
-     *         }
-     *     }
-     */
-
     private fun setListeners() {
         socket.setListener(GET_ROOM_STATE_SUCCESS) {
             it.validSocketArguments()?.let { json ->

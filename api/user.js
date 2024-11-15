@@ -4,12 +4,15 @@ class User {
      * Create a user.
      * @param {string} id - The user's socket ID.
      * @param {string} username - The user's username.
+     * @param {string} currentRoomId - The user's current room ID. 
      */
-    constructor(id, username, player) {
+    constructor(id, username) {
       /** @type {string} */
       this.id = id;
       /** @type {string} */
       this.username = username;
+      /** @type {string} */
+      this.currentRoomId = null;
     }
   
     /**
@@ -26,6 +29,14 @@ class User {
      */
     getUsername() {
       return this.username;
+    }
+
+    /**
+     * Get the user's current room ID.
+     * @returns {string} The user's current room ID.
+     */
+    getCurrentRoomId() {
+      return this.currentRoomId;
     }
   }
 

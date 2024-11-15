@@ -6,7 +6,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.myapplication.data.TicTacToeSession
 import com.example.myapplication.models.Coordinates
-import com.example.myapplication.models.Player
 import com.example.myapplication.models.toPlayer
 import com.example.myapplication.states.BoardState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +30,7 @@ class BoardViewModel @Inject constructor(
         private const val JOIN_SUCCESS = "joinRoomSuccess"
         private const val NEW_MOVE_FAILURE = "newMoveFailure"
         private const val NEW_MOVE_SUCCESS = "newMoveSucces"
+        private const val USER_LEFT = "userLeft"
 
         // Socket Argument Names
         private const val ROOM_ID = "roomId"
@@ -100,6 +100,7 @@ class BoardViewModel @Inject constructor(
 
         socket.setListener(JOIN_SUCCESS) {
             it.validSocketArguments()?.let { json ->
+
                 val roomId = json.getString(ROOM_ID)
                 if (roomId == currentRoomId) {
                     getRoomData()
@@ -141,6 +142,11 @@ class BoardViewModel @Inject constructor(
                 val message = json.getString(MESSAGE)
                 Log.d("BoardViewModel", message)
             }
+        }
+
+        socket.setListener(USER_LEFT) {
+            Log.d("BoardViewModel", "User left - it")
+            _boardState.postValue(BoardState.OpponentLeft)
         }
     }
 

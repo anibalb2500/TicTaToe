@@ -7,17 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.myapplication.BoardViewModel
 import com.example.myapplication.TicTacToeBoard
-import com.example.myapplication.WebSocketManager
 import com.example.myapplication.models.Coordinates
-import com.example.myapplication.models.MoveData
 import com.example.myapplication.models.Player
-import com.example.myapplication.models.toOpponent
 import com.example.myapplication.states.BoardState
 
 @Composable
@@ -36,14 +31,20 @@ fun BoardScreen(
 
     Column(modifier = modifier.fillMaxSize()) {
         Text(text = "Room: $roomId")
-        if (boardState is BoardState.Playing && coordinates != null) {
-            Playing(player, boardState as BoardState.Playing, coordinates!!) { x, y ->
-                boardViewModel.newMove(x, y)
+
+        when (boardState) {
+            is BoardState.Idle -> {
+                Text(text = "Waiting for other players")
             }
-        } else if (boardState is BoardState.WaitingForOtherPlayer) {
-            Text(text = "Waiting for other players")
-        } else {
-            Text(text = "Loading...")
+            is BoardState.WaitingForOtherPlayer -> {
+                Text(text = "Waiting for other players")
+            } else -> {
+                if (boardState != null) {
+                    Playing(player, boardState!!, coordinates!!) { x, y ->
+                        boardViewModel.newMove(x, y)
+                    }
+                }
+            }
         }
     }
 }
@@ -51,15 +52,21 @@ fun BoardScreen(
 @Composable
 private fun Playing(
     player: Player,
-    boardState: BoardState.Playing,
+    boardState: BoardState,
     coordinates: Coordinates,
     onNewMove: (Int, Int) -> Unit
 ) {
-    Text(text = "You Are: $player")
-    Text(text = "Current Player: ${boardState.currentPlayer}")
+    var canPlay = false
+    if (boardState is BoardState.Playing) {
+        canPlay = player == boardState.currentPlayer
+        Text(text = "You Are: $player")
+        Text(text = "Current Player: ${boardState.currentPlayer}")
+    } else if (boardState is BoardState.OpponentLeft) {
+        Text(text = "Your opponent left. Sorry, bud.")
+    }
     TicTacToeBoard(
         coordinates = coordinates,
         onCoordinateTake = { x, y -> onNewMove(x, y)},
-        canPlay = player == boardState.currentPlayer
+        canPlay = canPlay
     )
 }

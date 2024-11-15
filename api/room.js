@@ -16,7 +16,8 @@ class Room {
       }
       console.log(`addUser - ${this.playerX}, ${this.playerO}`);
 
-      this.users.push({ user });
+      user.currentRoomId = this.roomId;
+      this.users.push(user);  
       if (this.playerX == null) {
         console.log('Assigning playerO');
         this.playerX = user;
@@ -34,6 +35,14 @@ class Room {
   
     removeUser(id) {
       this.users = this.users.filter(user => user.id !== id);
+      if (this.playerX && this.playerX.getId() === id) {
+        this.playerX = null;
+      } else if (this.playerO && this.playerO.getId() === id) {
+        this.playerO = null;
+      }
+      if (this.currentPlayer && this.currentPlayer.getId() === id) {
+        this.currentPlayer = null;
+      }
     }
   
     isFull() {
@@ -80,8 +89,6 @@ class Room {
         }
       }
     }
-
-
 
       /**
    * Get the player type by user.
